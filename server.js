@@ -1,10 +1,25 @@
 const express = require('express');
-const bodyparser =  require ('body-parser');
+const bodyparser =  require('body-parser');
 const mongoose =  require('mongoose');
-var Book = require('./models/books');
+var Book =require('./models/books');
 
-var app = express();
+var app= express();
 
+var books=[
+{
+    "id":"1",
+    "title":"TuneShelf",
+    "author":"Ampersand"
+},
+
+{
+    "id":"2",
+    "title":"Book 2",
+    "author":"Doreen"
+}
+
+
+];
 app.use(bodyparser.urlencoded({ extended: false }));
  
 
@@ -23,7 +38,7 @@ app.get('/books/:id',function (req,res) {
 
 app.post('/books',function(req,res){
 var bookdata=req.body;
-var newBook = new Book(bookdata);
+var newBook=new Book(bookdata);
 newBook.save()
 .then(function(results) {
     console.log(results);
@@ -38,8 +53,7 @@ newBook.save()
 
 
 app.put('/books/:id',function(req,res) {
-  //var id=req.params.id;
-  //Book.update({id:id}).then().exec().catch() 
+    
 });
 
 app.delete('/books/:id',function(req,res){
