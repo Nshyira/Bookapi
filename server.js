@@ -38,7 +38,8 @@ newBook.save()
 
 
 app.put('/books/:id',function(req,res) {
-  var id=req.params.id;  
+  var id=req.params.id;
+  Book.update({id:id}).then().exec().catch() 
 });
 
 app.delete('/books/:id',function(req,res){
