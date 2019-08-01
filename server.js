@@ -1,69 +1,71 @@
 const express = require('express');
-const bodyparser =  require('body-parser');
-const mongoose =  require('mongoose');
-var Book =require('./models/books');
+const app = express();
+app.use(express.json());
+const Joi = require('Joi');
 
-var app= express();
+const books = [
+    { id: 1, title: 'Harry Potter', author:'Jk Rowling'},
+    { id: 2, title: 'Twilight', author:'Stephnie Meyer'},
+    { id: 3, title: 'Lorien Legacies', author:'Pittacus Lore'}
+    ];
+    
 
-var books=[
-{
-    "id":"1",
-    "title":"TuneShelf",
-    "author":"Ampersand"
-},
+app.get('/',(req, res)=>{res.send('Welcome to books API')
+});
 
-{
-    "id":"2",
-    "title":"Book 2",
-    "author":"Doreen"
-}
+//get all books
+app.get('/api/books', (req, res) => {
+    res.send(books);
+});
+
+//get book by id
+app.get('/api/books/:id', (req, res)=>{
+    const book = books.find(b=>b.id===parseInt(req.params.id));
+    if(!book)return res.status(404).send('The book with the given ID was not found');
+    res.send(book);
+});
 
 
-];
-app.use(bodyparser.urlencoded({ extended: false }));
+
+//add a book
+app.post('/api/books',(req,res)=>{
+    const book = {
+     id: books.length + 1,
+     title: req.body.title,
+     author: req.body.author
+    }
+    console.log(req.body)
+    books.push(book);
+    res.send(book);
+
+});
+
+//update a book
+app.put('/api/books/:id', (req, res) => {
+    const book = books.find(b => b.id === parseInt(req.params.id));
+    if (!book) return res.status(404).send('The book with the given ID was not found.');
  
-
-app.use(bodyparser.json());
-mongoose.connect(' mongodb://localhost/bookstore',{useNewUrlParser: true});
-
-app.get('/books',function (req,res) {
-// do smething
-res.json({message:"All books are here"});
-});
-
-
-app.get('/books/:id',function (req,res) {
-    
-});
-
-app.post('/books',function(req,res){
-var bookdata=req.body;
-var newBook=new Book(bookdata);
-newBook.save()
-.then(function(results) {
-    console.log(results);
-})
-.catch(function(err) {
-    console.log(err);
-    
-});
+    const schema = {
+        title: Joi.string().min(2).required()
+    };
  
-
+    const result = Joi.validate(req.body, schema);
+    if (result.error) {
+        res.status(400).send(result.error)
+    }
+ 
+    book.title = req.body.title;
+    res.send(book);
 });
 
+//delete a book
+app.delete('/api/books/:id', (req,res) =>{
 
-app.put('/books/:id',function(req,res) {
-    
+    const book = books.find(b=>b.id ===parseInt(req.params.id));
+    if(!book) return res.status(404).send('The book with the given ID was not found.');
+
+    const index = books.indexOf(book);
+    books.splice(index, 1);
+    res.send(book);
 });
-
-app.delete('/books/:id',function(req,res){
-
-});
-
-
-
-
-app.listen(8080,function(){
-    console.log('app running on port 8080');
-});
-
+app.listen(3000,()=> console.log('Listening on port 3000'));
