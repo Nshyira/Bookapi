@@ -1,55 +1,69 @@
-const express = require('express');
-const bodyparser =  require ('body-parser');
-const mongoose =  require('mongoose');
-var Book = require('./models/books');
+const express = require("express");
+const app = express();
 
-var app = express();
+app.use(express.json());
+const Joi = require("Joi");
 
-app.use(bodyparser.urlencoded({ extended: false }));
- 
+const books = require("./books");
 
-app.use(bodyparser.json());
-mongoose.connect(' mongodb://localhost/bookstore',{useNewUrlParser: true});
-
-app.get('/books',function (req,res) {
-// do smething
-res.json({message:"All books are here"});
+app.get("/", (req, res) => {
+  res.send("Welcome to books API");
 });
 
-
-app.get('/books/:id',function (req,res) {
-    
+//get all books
+app.get("/api/books", (req, res) => {
+  res.send(books);
 });
 
-app.post('/books',function(req,res){
-var bookdata=req.body;
-var newBook = new Book(bookdata);
-newBook.save()
-.then(function(results) {
-    console.log(results);
-})
-.catch(function(err) {
-    console.log(err);
-    
-});
- 
-
+//get books by id
+app.get("/api/books/:id", (req, res) => {
+  const book = books.find(b => b.id === parseInt(req.params.id));
+  if (!book)
+    return res.status(404).send("The book with the given ID was not found");
+  res.send(book);
 });
 
-
-app.put('/books/:id',function(req,res) {
-  //var id=req.params.id;
-  //Book.update({id:id}).then().exec().catch() 
+//add a book
+app.post("/api/books", (req, res) => {
+  const book = {
+    id: books.length + 1,
+    title: req.body.title,
+    author: req.body.author
+  };
+  console.log(req.body);
+  books.push(book);
+  res.send(book);
 });
 
-app.delete('/books/:id',function(req,res){
+//update a book
+app.put("/api/books/:id", (req, res) => {
+  const book = books.find(b => b.id === parseInt(req.params.id));
+  if (!book)
+    return res.status(404).send("The book with the given ID was not found.");
 
+  const schema = {
+    title: Joi.string()
+      .min(2)
+      .required()
+  };
+
+  const result = Joi.validate(req.body, schema);
+  if (result.error) {
+    res.status(400).send(result.error);
+  }
+
+  book.title = req.body.title;
+  res.send(book);
 });
 
+//delete a book
+app.delete("/api/books/:id", (req, res) => {
+  const book = books.find(b => b.id === parseInt(req.params.id));
+  if (!book)
+    return res.status(404).send("The book with the given ID was not found.");
 
-
-
-app.listen(8080,function(){
-    console.log('app running on port 8080');
+  const index = books.indexOf(book);
+  books.splice(index, 1);
+  res.send(book);
 });
-
+app.listen(8080, () => console.log("Listening on port 8080"));
